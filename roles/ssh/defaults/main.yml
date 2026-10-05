@@ -1,0 +1,8 @@
+ssh_port: 22
+
+ssh_allowed_users:
+  - adminops
+
+ssh_password_authentication: "no"
+
+ssh_permit_root_login: "no"

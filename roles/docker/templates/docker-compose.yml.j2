@@ -1,0 +1,8 @@
+services:
+
+  nginx-container:
+    image: nginx:latest
+    container_name: nginx-docker
+    ports:
+      - "127.0.0.1:8080:80"
+    restart: always

@@ -1,0 +1,102 @@
+---
+- name: Instalar Restic
+  ansible.builtin.apt:
+    name: restic
+    state: present
+    update_cache: true
+
+- name: Asegurar directorio SSH de root
+  ansible.builtin.file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Crear clave SSH exclusiva para backups
+  ansible.builtin.command:
+    cmd: >
+      ssh-keygen
+      -t ed25519
+      -f {{ backup_ssh_private_key }}
+      -N ""
+      -C "web01-restic-backup"
+  args:
+    creates: "{{ backup_ssh_private_key }}"
+
+- name: Leer clave publica de backup
+  ansible.builtin.slurp:
+    src: "{{ backup_ssh_public_key }}"
+  register: backup_public_key
+
+- name: Autorizar clave de web01 en backup01
+  ansible.posix.authorized_key:
+    user: "{{ backup_server_user }}"
+    key: "{{ backup_public_key.content | b64decode | trim }}"
+    state: present
+  delegate_to: backup01
+  become: true
+
+- name: Crear directorio de configuracion de Restic
+  ansible.builtin.file:
+    path: "{{ restic_password_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Crear archivo de contraseña de Restic
+  ansible.builtin.copy:
+    content: "{{ vault_restic_password }}\n"
+    dest: "{{ restic_password_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: Comprobar si el repositorio Restic esta inicializado
+  ansible.builtin.command:
+    cmd: >
+      restic
+      -r {{ restic_repository }}
+      --password-file {{ restic_password_file }}
+      -o sftp.command="ssh -i {{ backup_ssh_private_key }} -o StrictHostKeyChecking=accept-new {{ backup_server_user }}@{{ backup_server_host }} -s sftp"
+      snapshots
+  register: restic_repo_check
+  changed_when: false
+  failed_when: false
+
+- name: Inicializar repositorio Restic si no existe
+  ansible.builtin.command:
+    cmd: >
+      restic
+      -r {{ restic_repository }}
+      --password-file {{ restic_password_file }}
+      -o sftp.command="ssh -i {{ backup_ssh_private_key }} -o StrictHostKeyChecking=accept-new {{ backup_server_user }}@{{ backup_server_host }} -s sftp"
+      init
+  when: restic_repo_check.rc != 0
+
+- name: Crear script de backup Restic
+  ansible.builtin.copy:
+    dest: /usr/local/sbin/restic-backup.sh
+    owner: root
+    group: root
+    mode: "0700"
+    content: |
+      #!/bin/bash
+      set -e
+
+      export RESTIC_PASSWORD_FILE="{{ restic_password_file }}"
+
+      restic \
+        -r "{{ restic_repository }}" \
+        -o sftp.command="ssh -i {{ backup_ssh_private_key }} -o StrictHostKeyChecking=accept-new {{ backup_server_user }}@{{ backup_server_host }} -s sftp" \
+        backup /etc/nginx
+
+- name: Programar backup diario con cron
+  ansible.builtin.cron:
+    name: "Backup Restic web01"
+    user: root
+    minute: "0"
+    hour: "2"
+    job: "/usr/local/sbin/restic-backup.sh >> /var/log/restic-backup.log 2>&1"

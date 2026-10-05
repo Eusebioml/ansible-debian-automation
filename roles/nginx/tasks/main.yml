@@ -1,0 +1,58 @@
+---
+- name: Instalar Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Crear directorio web
+  ansible.builtin.file:
+    path: "{{ nginx_document_root }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Desplegar pagina web
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ nginx_document_root }}/{{ nginx_index_file }}"
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Crear configuracion del sitio
+  ansible.builtin.template:
+    src: web01.conf.j2
+    dest: /etc/nginx/sites-available/web01
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reiniciar Nginx
+
+- name: Activar sitio web01
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/web01
+    dest: /etc/nginx/sites-enabled/web01
+    state: link
+  notify:
+    - Reiniciar Nginx
+
+- name: Eliminar sitio por defecto de Nginx
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify:
+    - Reiniciar Nginx
+
+- name: Validar configuracion Nginx
+  ansible.builtin.command:
+    cmd: nginx -t
+  changed_when: false
+
+- name: Habilitar y arrancar Nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: yes

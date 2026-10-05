@@ -1,0 +1,9 @@
+---
+- name: Preparacion inicial del servidor de backup
+  hosts: backup
+  become: true
+
+  roles:
+    - base
+    - users
+    - sudo

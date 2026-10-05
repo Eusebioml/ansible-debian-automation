@@ -1,0 +1,9 @@
+---
+- name: Seguridad del servidor de backup
+  hosts: backup
+  become: true
+
+  roles:
+    - ssh
+    - firewall
+    - fail2ban

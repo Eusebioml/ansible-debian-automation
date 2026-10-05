@@ -1,0 +1,11 @@
+---
+backup_server_host: 192.168.18.50
+backup_server_user: restic
+
+backup_ssh_private_key: /root/.ssh/restic_backup
+backup_ssh_public_key: /root/.ssh/restic_backup.pub
+
+restic_password_dir: /root/.config/restic
+restic_password_file: /root/.config/restic/password
+
+restic_repository: "sftp:restic@192.168.18.50:/srv/restic/web01"

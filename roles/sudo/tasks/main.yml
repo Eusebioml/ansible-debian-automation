@@ -1,0 +1,21 @@
+---
+- name: Instalar paquete sudo
+  ansible.builtin.apt:
+    name: sudo
+    state: present
+    update_cache: true
+
+- name: Añadir administrador al grupo sudo
+  ansible.builtin.user:
+    name: "{{ admin_user }}"
+    groups: sudo
+    append: true
+
+- name: Configurar sudoers para administrador
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ admin_user }}"
+    content: "{{ admin_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "/usr/sbin/visudo -cf %s"

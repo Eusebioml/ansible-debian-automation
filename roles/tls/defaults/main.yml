@@ -1,0 +1,9 @@
+tls_cert_dir: /etc/nginx/ssl
+
+tls_cert_file: /etc/nginx/ssl/web01.crt
+tls_key_file: /etc/nginx/ssl/web01.key
+tls_ca_cert: /etc/nginx/ssl/ca.crt
+
+tls_common_name: web01
+tls_days: 365
+

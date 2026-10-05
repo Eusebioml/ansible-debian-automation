@@ -1,0 +1,13 @@
+admin_user: adminops
+standard_user: usuario1
+
+ssh_public_key: /home/ansiblectrl/.ssh/id_ed25519.pub
+
+ssh_allowed_users:
+  - adminops
+
+ssh_port: 22
+
+# Configuración sistema
+server_hostname: web01
+timezone: Europe/Madrid

@@ -1,0 +1,41 @@
+---
+- name: Crear usuario administrador
+  ansible.builtin.user:
+    name: "{{ admin_user }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+    password_lock: false
+
+
+- name: Crear usuario estandar
+  ansible.builtin.user:
+    name: "{{ standard_user }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+    password_lock: false
+
+
+- name: Crear directorio SSH administrador
+  ansible.builtin.file:
+    path: "/home/{{ admin_user }}/.ssh"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: "0700"
+
+
+- name: Instalar clave SSH administrador
+  ansible.posix.authorized_key:
+    user: "{{ admin_user }}"
+    state: present
+    key: "{{ lookup('file', ssh_public_key) }}"
+
+
+- name: Ajustar permisos authorized_keys
+  ansible.builtin.file:
+    path: "/home/{{ admin_user }}/.ssh/authorized_keys"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: "0600"

@@ -1,0 +1,109 @@
+---
+
+- name: Instalar OpenSSL
+  ansible.builtin.apt:
+    name: openssl
+    state: present
+    update_cache: yes
+
+
+- name: Crear directorio SSL para Nginx
+  ansible.builtin.file:
+    path: "{{ tls_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+
+- name: Generar clave privada TLS del servidor
+  ansible.builtin.command:
+    cmd: >
+      openssl genrsa
+      -out {{ tls_key_file }}
+      2048
+  args:
+    creates: "{{ tls_key_file }}"
+
+
+- name: Ajustar permisos de la clave privada
+  ansible.builtin.file:
+    path: "{{ tls_key_file }}"
+    owner: root
+    group: root
+    mode: '0600'
+
+
+- name: Instalar certificado publico de la CA
+  ansible.builtin.copy:
+    src: ca/ca.crt
+    dest: "{{ tls_ca_cert }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: Copiar clave y certificado CA temporalmente
+  ansible.builtin.copy:
+    src: "ca/{{ item }}"
+    dest: "/tmp/{{ item }}"
+    owner: root
+    group: root
+    mode: '0600'
+  loop:
+    - ca.crt
+    - ca.key
+
+
+- name: Copiar configuración OpenSSL para SAN
+  ansible.builtin.template:
+    src: web01.cnf.j2
+    dest: /tmp/web01.cnf
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: Generar CSR del servidor web
+  ansible.builtin.command:
+    cmd: >
+      openssl req
+      -new
+      -key {{ tls_key_file }}
+      -out /tmp/web01.csr
+      -subj "/CN={{ tls_common_name }}"
+      -config /tmp/web01.cnf
+  args:
+    creates: /tmp/web01.csr
+
+
+- name: Firmar certificado TLS con CA interna
+  ansible.builtin.command:
+    cmd: >
+      openssl x509
+      -req
+      -in /tmp/web01.csr
+      -CA /tmp/ca.crt
+      -CAkey /tmp/ca.key
+      -CAcreateserial
+      -out {{ tls_cert_file }}
+      -days {{ tls_days }}
+      -sha256
+      -extfile /tmp/web01.cnf
+      -extensions v3_req
+  args:
+    creates: "{{ tls_cert_file }}"
+
+
+- name: Ajustar permisos del certificado
+  ansible.builtin.file:
+    path: "{{ tls_cert_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: Eliminar clave privada CA temporal
+  ansible.builtin.file:
+    path: /tmp/ca.key
+    state: absent

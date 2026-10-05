@@ -1,0 +1,7 @@
+---
+- name: Configurar cliente de copias de seguridad
+  hosts: webservers
+  become: true
+
+  roles:
+    - backup_client

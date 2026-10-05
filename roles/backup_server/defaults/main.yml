@@ -1,0 +1,6 @@
+---
+backup_user: restic
+backup_group: restic
+
+backup_root_dir: /srv/restic
+backup_repo_dir: /srv/restic/web01

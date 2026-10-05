@@ -1,0 +1,15 @@
+---
+-  name: Configuracion completa de servidor web
+   hosts: webservers
+   become: true
+
+   roles:
+    -  base
+    -  users
+    -  sudo
+    -  ssh
+    -  firewall
+    -  tls
+    -  nginx
+    -  fail2ban
+    -  docker

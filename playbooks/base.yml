@@ -1,0 +1,7 @@
+---
+- name: Configuracion base de servidores
+  hosts: webservers
+  become: true
+
+  roles:
+    - base

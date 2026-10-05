@@ -1,0 +1,18 @@
+Port {{ ssh_port }}
+
+Protocol 2
+
+PermitRootLogin no
+
+PasswordAuthentication no
+
+PubkeyAuthentication yes
+
+AllowUsers {{ ssh_allowed_users | join(' ') }}
+
+X11Forwarding no
+
+MaxAuthTries 3
+
+ClientAliveInterval 300
+ClientAliveCountMax 2

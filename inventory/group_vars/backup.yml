@@ -1,0 +1,16 @@
+---
+server_hostname: backup01
+timezone: Europe/Madrid
+
+admin_user: adminops
+standard_user: usuario1
+
+ssh_public_key: /home/ansiblectrl/.ssh/id_ed25519.pub
+
+ssh_allowed_users:
+  - adminops
+  - restic
+ssh_port: 22
+
+firewall_allowed_ports:
+  - 22

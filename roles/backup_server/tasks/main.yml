@@ -1,0 +1,30 @@
+---
+- name: Instalar Restic
+  ansible.builtin.apt:
+    name: restic
+    state: present
+    update_cache: true
+
+- name: Crear usuario dedicado para backups
+  ansible.builtin.user:
+    name: "{{ backup_user }}"
+    shell: /bin/bash
+    create_home: true
+    password_lock: true
+    state: present
+
+- name: Crear directorio principal de Restic
+  ansible.builtin.file:
+    path: "{{ backup_root_dir }}"
+    state: directory
+    owner: "{{ backup_user }}"
+    group: "{{ backup_group }}"
+    mode: "0750"
+
+- name: Crear directorio del repositorio de web01
+  ansible.builtin.file:
+    path: "{{ backup_repo_dir }}"
+    state: directory
+    owner: "{{ backup_user }}"
+    group: "{{ backup_group }}"
+    mode: "0750"

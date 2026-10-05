@@ -1,0 +1,13 @@
+[DEFAULT]
+
+bantime = {{ fail2ban_bantime }}
+findtime = {{ fail2ban_findtime }}
+maxretry = {{ fail2ban_maxretry }}
+
+
+[sshd]
+
+enabled = true
+port = ssh
+logpath = %(sshd_log)s
+backend = systemd

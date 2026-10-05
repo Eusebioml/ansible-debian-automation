@@ -1,0 +1,22 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+
+# SSH / claves privadas
+*.pem
+*.key
+id_rsa
+id_ed25519
+terraform_backup01
+restic_backup
+
+# Secrets
+.env
+*.secret
+
+# Temporales
+*.swp
+*.tmp
+.DS_Store

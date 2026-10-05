@@ -1,0 +1,45 @@
+---
+
+- name: Instalar Docker
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+    update_cache: yes
+
+
+- name: Habilitar y arrancar Docker
+  ansible.builtin.systemd:
+    name: "{{ docker_service }}"
+    enabled: yes
+    state: started
+
+
+- name: Añadir usuarios al grupo docker
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  loop: "{{ docker_users }}"
+
+- name: Crear directorio Docker Compose
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}"
+    state: directory
+    owner: adminops
+    group: adminops
+    mode: '0755'
+
+
+- name: Desplegar docker-compose
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_compose_dir }}/docker-compose.yml"
+    owner: adminops
+    group: adminops
+    mode: '0644'
+
+
+- name: Arrancar servicio Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}"
+    state: present

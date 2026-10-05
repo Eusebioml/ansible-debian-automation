@@ -1,0 +1,7 @@
+---
+- name: Configurar servidor de copias de seguridad
+  hosts: backup
+  become: true
+
+  roles:
+    - backup_server

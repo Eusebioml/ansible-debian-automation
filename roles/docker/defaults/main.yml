@@ -1,0 +1,12 @@
+---
+
+docker_packages:
+  - docker.io
+  - docker-compose
+
+docker_service: docker
+
+docker_users:
+  - adminops
+
+docker_compose_dir: /opt/docker/nginx

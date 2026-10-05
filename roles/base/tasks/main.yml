@@ -1,0 +1,55 @@
+---
+- name: Actualizar lista de paquetes
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Actualizar paquetes instalados
+  ansible.builtin.apt:
+    upgrade: dist
+
+- name: Instalar herramientas básicas
+  ansible.builtin.apt:
+    name:
+      - curl
+      - wget
+      - vim
+      - htop
+      - net-tools
+      - unzip
+      - ca-certificates
+      - gnupg
+      - chrony
+      - git
+      - tree
+      - rsync
+      - sudo
+      - bash-completion
+    state: present
+    update_cache: yes
+
+- name: Configurar hostname
+  ansible.builtin.hostname:
+    name: "{{ server_hostname }}"
+
+- name: Configurar zona horaria
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Activar servicio chrony
+  ansible.builtin.systemd:
+    name: chrony
+    state: started
+    enabled: yes
+
+- name: Configurar archivo hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ ansible_default_ipv4.address }} {{ server_hostname }}"
+    state: present
+
+- name: Configurar hostname en /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ ansible_default_ipv4.address }} {{ server_hostname }}"
+    state: present

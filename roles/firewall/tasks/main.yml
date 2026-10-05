@@ -1,0 +1,30 @@
+---
+- name: Instalar UFW
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+    update_cache: yes
+
+
+- name: Permitir puertos necesarios
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+  loop: "{{ firewall_allowed_ports }}"
+
+
+- name: Establecer politica de entrada
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+
+- name: Establecer politica de salida
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+
+- name: Activar firewall
+  community.general.ufw:
+    state: enabled
